@@ -1,0 +1,35 @@
+name: Build verification
+
+on:
+  push:
+    branches: [pirate-rework]
+  pull_request:
+    branches: [pirate-rework]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm install
+      - name: Validate Prisma schema
+        working-directory: backend
+        env:
+          DATABASE_URL: mysql://root:root@127.0.0.1:3306/glarium
+        run: |
+          npx prisma validate --schema=src/dataAccess/prisma/schema.prisma
+          npx prisma generate --schema=src/dataAccess/prisma/schema.prisma
+      - name: Compile backend
+        working-directory: backend
+        run: npm run build
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
