@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express, { Request, Response } from "express";
 
 import userRoutes from './routes/userRoutes';
@@ -18,7 +19,7 @@ const app = express();
 const PORT = 3001;
 
 app.use(cors({
-    origin: "http://localhost:3000"
+    origin: ["http://localhost", "http://127.0.0.1", "http://localhost:3000", "http://127.0.0.1:3000"]
 }));
 
 app.get("/api/hello", (req: Request, res: Response) => {

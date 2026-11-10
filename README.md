@@ -69,3 +69,13 @@ I would like other developers to be able to contribute to the project and help i
 
 ### Trello
 [Access Trello](https://trello.com/invite/b/5de31570145e1a01eec32777/ATTI6b3aa287545923c4883bf11dace025ed79D7BDBE/glarium)
+
+
+### Windows / XAMPP installation (without Docker)
+
+For a local Windows installation with XAMPP MySQL and Node.js, see [INSTALL-XAMPP-NL.md](INSTALL-XAMPP-NL.md). The repository also includes:
+
+- `install-xampp.bat` — creates the local database, installs dependencies, applies Prisma migrations and seeds game data.
+- `start-local.bat` — starts the backend and frontend in separate terminal windows.
+
+The React frontend and Node.js backend do not run as a PHP site inside Apache `htdocs`. XAMPP is used for MySQL; Node.js serves the game on ports 3000 and 3001. Keep MySQL running while playing.
