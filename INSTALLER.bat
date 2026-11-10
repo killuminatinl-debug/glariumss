@@ -163,7 +163,7 @@ echo.
 echo INSTALLATIE NIET VOLTOOID.
 pause
 exit /b 1
- | Select-Object -First 1; if($m){$secret=$m.Matches[0].Groups[1].Value}}; if(!$secret){$secret=[guid]::NewGuid().ToString('N')+[guid]::NewGuid().ToString('N')}; $url='mysql://root@127.0.0.1:3306/glarium'; $content=\"DATABASE_URL=$url`r`nJWT_SECRET=$secret`r`nJWT_EXPIRES_IN=7d`r`n\"; [IO.File]::WriteAllText((Join-Path (Get-Location) $path),$content,[Text.Encoding]::ASCII)"
+ | Select-Object -First 1; if($m){$secret=$m.Matches[0].Groups[1].Value}}; if(!$secret){$secret=[guid]::NewGuid().ToString('N')+[guid]::NewGuid().ToString('N')}; $url='mysql://root@127.0.0.1:3306/glarium'; $content=('DATABASE_URL='+$url+[Environment]::NewLine+'JWT_SECRET='+$secret+[Environment]::NewLine+'JWT_EXPIRES_IN=7d'+[Environment]::NewLine); [IO.File]::WriteAllText((Join-Path (Get-Location) $path),$content,[Text.Encoding]::ASCII)"
 if errorlevel 1 goto fail
 
 echo [4/6] Backend installeren en database vullen...
