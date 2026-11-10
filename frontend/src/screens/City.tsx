@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import DragToScroll from "../containers/DragToScroll";
 import Building, { BuildingPosition } from "../components/Building";
 import Layout from "../containers/Layout";
@@ -14,6 +14,7 @@ const City = () => {
     const { data } = useBuildingGetInfo(Number(cityId));
     const { openModal } = useModal();
 
+    // Original Glarium building coordinates are intentionally preserved.
     const [groundList] = useState<BuildingPosition[]>([
         { top: 370, left: 1100 },
         { top: 350, left: 740 },
@@ -46,10 +47,10 @@ const City = () => {
     return (
         <>
             <Layout />
-            <div className="cursor-all-scroll h-full w-full absolute overflow-hidden">
+            <div className="pirate-city-viewport cursor-all-scroll h-full w-full absolute overflow-hidden">
                 <DragToScroll className="scroll-container">
                     <div
-                        className="w-[2460px] h-[1794px] bg-cover bg-no-repeat"
+                        className="pirate-city-world w-[2460px] h-[1794px] bg-cover bg-no-repeat"
                         style={{
                             backgroundImage: `url(${CityImg})`,
                         }}
