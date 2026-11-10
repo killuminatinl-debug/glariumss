@@ -1,5 +1,33 @@
+:root {
+    color-scheme: dark;
+    --pirate-ink: #101817;
+    --pirate-deep: #172322;
+    --pirate-ocean: #183b3b;
+    --pirate-brass: #c19a58;
+    --pirate-gold: #e0bd78;
+    --pirate-parchment: #d8c7a1;
+    --pirate-rust: #704637;
+}
+
+html, body, #root {
+    min-height: 100%;
+}
+
 body {
-    margin: 0px;
+    margin: 0;
+    overflow: hidden;
+    background: #101817;
+    color: var(--pirate-parchment);
+    font-family: Georgia, "Times New Roman", serif;
+}
+
+button, a, [role="button"] {
+    transition: color .18s ease, border-color .18s ease, background-color .18s ease, filter .18s ease;
+}
+
+::selection {
+    color: #17130d;
+    background: #d1ad70;
 }
 
 .scroll-container::-webkit-scrollbar {
@@ -7,16 +35,19 @@ body {
 }
 
 .custom-scroll::-webkit-scrollbar {
-    width: 20px;
-    background-color: #f5f5f5;
+    width: 12px;
+    background: #111b1a;
 }
 
 .custom-scroll::-webkit-scrollbar-track {
-    background-image: url('../img/icon/scroll_bg.png');
+    background: linear-gradient(90deg, #101918, #263633, #101918);
+    border-left: 1px solid rgba(193,154,88,.25);
 }
 
 .custom-scroll::-webkit-scrollbar-thumb {
-    background-image: url('../img/icon/scroll_mid.png');
+    background: linear-gradient(90deg, #80633b, #c19a58, #80633b);
+    border: 2px solid #182321;
+    border-radius: 2px;
 }
 
 .single-thumb .range-slider__thumb[data-lower] {
@@ -25,4 +56,132 @@ body {
 
 .single-thumb .range-slider__range {
     border-radius: 6px;
+}
+
+/* BLACK TIDE visual treatment: the original city art and all building anchors stay intact. */
+.pirate-city-viewport {
+    background:
+        radial-gradient(ellipse at 50% 35%, rgba(41, 79, 72, .22), transparent 60%),
+        #111b19;
+}
+
+.pirate-city-world {
+    isolation: isolate;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 150px rgba(4, 10, 9, .66);
+}
+
+.pirate-city-world::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg, rgba(8, 20, 19, .18) 0%, transparent 22%, transparent 68%, rgba(7, 17, 16, .36) 100%),
+        radial-gradient(ellipse at 50% 48%, transparent 40%, rgba(5, 13, 12, .42) 100%),
+        linear-gradient(115deg, rgba(18, 47, 43, .14), rgba(116, 75, 43, .10));
+    mix-blend-mode: multiply;
+}
+
+.pirate-city-world::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: .22;
+    background-image:
+        repeating-linear-gradient(0deg, transparent 0 31px, rgba(220, 190, 128, .045) 32px, transparent 33px),
+        repeating-linear-gradient(90deg, transparent 0 47px, rgba(220, 190, 128, .035) 48px, transparent 49px);
+    mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 82%, transparent 100%);
+}
+
+.pirate-building-layer {
+    z-index: 1;
+}
+
+.pirate-building-slot {
+    transform-origin: center bottom;
+    filter: drop-shadow(0 7px 7px rgba(0, 0, 0, .42));
+    transition: filter .2s ease, transform .2s ease;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.pirate-building-slot:hover {
+    z-index: 8;
+    transform: translateY(-5px) scale(1.035);
+    filter: drop-shadow(0 12px 10px rgba(0, 0, 0, .62)) drop-shadow(0 0 9px rgba(205, 164, 94, .38));
+}
+
+.pirate-building-slot img {
+    -webkit-user-drag: none;
+    user-select: none;
+}
+
+/* Aged brass, dark timber and sea-green navigation treatment. */
+.pirate-topbar {
+    position: relative;
+    align-items: center;
+    gap: 2px;
+    color: #e0c997;
+    background-color: #182321;
+    background-blend-mode: multiply;
+    background-size: cover;
+    border-bottom: 1px solid rgba(205, 164, 94, .62);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, .42);
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    font-family: Georgia, "Times New Roman", serif;
+}
+
+.pirate-topbar::before {
+    content: "⚓  BLACK TIDE";
+    position: absolute;
+    left: 22px;
+    top: 0;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    color: #e0bd78;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-shadow: 0 1px 3px #000;
+    pointer-events: none;
+}
+
+.pirate-topbar > div {
+    border-left: 1px solid rgba(213, 182, 125, .13);
+    text-shadow: 0 1px 3px #000;
+}
+
+.pirate-topbar > div:hover {
+    color: #fff0c8;
+    background: rgba(192, 151, 82, .13);
+}
+
+.pirate-topbar a {
+    color: inherit;
+}
+
+.pirate-navigation-shell {
+    filter: drop-shadow(0 5px 9px rgba(0, 0, 0, .28));
+}
+
+@media (max-width: 900px) {
+    .pirate-topbar::before {
+        display: none;
+    }
+    .pirate-topbar {
+        justify-content: center;
+        gap: 0;
+        letter-spacing: .03em;
+    }
+    .pirate-topbar > div {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
 }
