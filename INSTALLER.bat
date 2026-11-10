@@ -53,8 +53,10 @@ xcopy "frontend\dist\*" "%~dp0" /E /I /Y >nul
 if errorlevel 1 (echo Kopieren mislukt. & pause & exit /b 1)
 echo.
 echo INSTALLATIE GEREED!
+echo De game-server wordt gestart...
+start "BLACK TIDE API" /D "%~dp0backend" cmd /k "npm start"
+timeout /t 3 /nobreak >nul
 echo Open http://localhost/
-echo Start daarna START-GAME.bat en laat dat venster open.
 start "" "http://localhost/"
 pause
 exit /b 0
