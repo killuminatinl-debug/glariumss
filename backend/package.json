@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "commonjs",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node copy-prisma-client.js",
     "start": "node dist/backend/src/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "seed": "ts-node -r dotenv/config src/dataAccess/prisma/seed.ts"
