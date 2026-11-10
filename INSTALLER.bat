@@ -1,34 +1,103 @@
 @echo off
 setlocal EnableExtensions
-title BLACK TIDE - INSTALLER
-cd /d "%~dp0"
+title BLACK TIDE - Automatische installatie
 color 0B
+cd /d "%~dp0"
+
 echo.
-echo BLACK TIDE - INSTALLATIE VOOR XAMPP
+echo  ==========================================
+echo          BLACK TIDE - AUTOMATISCHE SETUP
+echo  ==========================================
 echo.
-echo Zet de volledige game rechtstreeks in C:\xampp\htdocs\
-echo Start Apache en MySQL in XAMPP. Node.js 20 LTS is ook vereist.
+echo Dit programma regelt de installatie en start de game.
 echo.
-pause
+
+:: Controleer of de bestanden op de juiste plek staan.
+if not exist "backend\package.json" (
+  echo FOUT: De map backend ontbreekt.
+  echo Pak de volledige ZIP rechtstreeks uit in C:\xampp\htdocs\
+  goto fail
+)
+if not exist "frontend\package.json" (
+  echo FOUT: De map frontend ontbreekt.
+  echo Pak de volledige ZIP rechtstreeks uit in C:\xampp\htdocs\
+  goto fail
+)
+
+:: Zoek XAMPP automatisch.
+set "XAMPP=C:\xampp"
+if not exist "%XAMPP%\mysql\bin\mysql.exe" set "XAMPP=%ProgramFiles%\xampp"
+if not exist "%XAMPP%\mysql\bin\mysql.exe" set "XAMPP=%ProgramFiles(x86)%\xampp"
+if not exist "%XAMPP%\mysql\bin\mysql.exe" (
+  echo FOUT: XAMPP niet gevonden. Installeer XAMPP eerst in C:\xampp.
+  goto fail
+)
+
+:: Node.js wordt automatisch geinstalleerd als het ontbreekt.
 where node >nul 2>nul
-if errorlevel 1 (echo Installeer eerst Node.js 20 LTS via https://nodejs.org/ & pause & exit /b 1)
-if not exist "backend\package.json" (echo Backend-map ontbreekt. Pak de volledige ZIP uit in htdocs. & pause & exit /b 1)
-if not exist "frontend\package.json" (echo Frontend-map ontbreekt. Pak de volledige ZIP uit in htdocs. & pause & exit /b 1)
-set "MYSQL=C:\xampp\mysql\bin\mysql.exe"
-if not exist "%MYSQL%" set "MYSQL=%ProgramFiles%\xampp\mysql\bin\mysql.exe"
-if not exist "%MYSQL%" set /p MYSQL="Pad naar mysql.exe: "
-if not exist "%MYSQL%" (echo mysql.exe niet gevonden. & pause & exit /b 1)
-set /p DBUSER="MySQL gebruiker [root]: "
-if not defined DBUSER set "DBUSER=root"
-set /p DBPASS="MySQL wachtwoord (standaard leeg): "
-echo.
-echo [1/5] Database aanmaken...
-if defined DBPASS ("%MYSQL%" -h 127.0.0.1 -u "%DBUSER%" -p%DBPASS% -e "CREATE DATABASE IF NOT EXISTS glarium CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;") else ("%MYSQL%" -h 127.0.0.1 -u "%DBUSER%" -e "CREATE DATABASE IF NOT EXISTS glarium CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
-if errorlevel 1 (echo MySQL verbinding mislukt. Controleer XAMPP en wachtwoord. & pause & exit /b 1)
-echo [2/5] Database-instellingen...
-if not exist "backend\.env" powershell -NoProfile -ExecutionPolicy Bypass -Command "$u=$env:DBUSER; $p=[uri]::EscapeDataString($env:DBPASS); if($p){$auth=$u+':'+$p+'@'}else{$auth=$u+'@'}; $url='mysql://'+$auth+'127.0.0.1:3306/glarium'; $secret=[guid]::NewGuid().ToString('N')+[guid]::NewGuid().ToString('N'); @('DATABASE_URL="'+$url+'"','JWT_SECRET='+$secret,'JWT_EXPIRES_IN=7d') | Set-Content -Encoding ascii 'backend/.env'"
-if errorlevel 1 (echo backend.env maken mislukt. & pause & exit /b 1)
-echo [3/5] Backend installeren, database maken en vullen...
+if errorlevel 1 (
+  echo [1/6] Node.js wordt automatisch geinstalleerd...
+  where winget >nul 2>nul
+  if not errorlevel 1 (
+    winget install --id OpenJS.NodeJS.LTS --exact --silent --accept-package-agreements --accept-source-agreements
+  ) else (
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; $v=Invoke-RestMethod 'https://nodejs.org/dist/index.json' | Where-Object { $_.lts -ne $false } | Select-Object -First 1; $msi='node-'+$v.version+'-x64.msi'; $url='https://nodejs.org/dist/'+$v.version+'/'+$msi; $out=Join-Path $env:TEMP $msi; Invoke-WebRequest $url -OutFile $out; Start-Process msiexec.exe -ArgumentList @('/i', $out, '/qn', '/norestart') -Wait; Remove-Item $out -Force"
+  )
+  if errorlevel 1 (
+    echo Node.js automatisch installeren is mislukt.
+    goto fail
+  )
+  set "PATH=%ProgramFiles%\nodejs;%APPDATA%\npm;%PATH%"
+)
+where node >nul 2>nul
+if errorlevel 1 (
+  echo Node.js is geinstalleerd, maar Windows kan het nog niet vinden.
+  echo Start Windows opnieuw en voer INSTALLER.bat nogmaals uit.
+  goto fail
+)
+
+echo [2/6] Apache en MySQL starten...
+if not exist "%XAMPP%\apache\bin\httpd.exe" (
+  echo FOUT: Apache ontbreekt in de XAMPP-installatie.
+  goto fail
+)
+if not exist "%XAMPP%\apache_start.bat" (
+  echo FOUT: apache_start.bat niet gevonden.
+  goto fail
+)
+if not exist "%XAMPP%\mysql_start.bat" (
+  echo FOUT: mysql_start.bat niet gevonden.
+  goto fail
+)
+start "BLACK TIDE Apache" /min cmd /c ""%XAMPP%\apache_start.bat""
+start "BLACK TIDE MySQL" /min cmd /c ""%XAMPP%\mysql_start.bat""
+
+echo Wachten op MySQL...
+set "MYSQL=%XAMPP%\mysql\bin\mysql.exe"
+set /a WAIT=0
+:waitmysql
+"%MYSQL%" -h 127.0.0.1 -u root -e "SELECT 1" >nul 2>nul
+if not errorlevel 1 goto mysqlready
+set /a WAIT+=1
+if %WAIT% GEQ 20 (
+  echo MySQL start niet. Controleer of poort 3306 vrij is.
+  goto fail
+)
+timeout /t 2 /nobreak >nul
+goto waitmysql
+
+:mysqlready
+echo [3/6] Database automatisch aanmaken...
+"%MYSQL%" -h 127.0.0.1 -u root -e "CREATE DATABASE IF NOT EXISTS glarium CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+if errorlevel 1 goto dbfail
+set "DBUSER=root"
+set "DBPASS="
+if not exist "backend\.env" (
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "$u=$env:DBUSER; $p=[uri]::EscapeDataString($env:DBPASS); $auth=if($p){$u+':'+$p+'@'}else{$u+'@'}; $url='mysql://'+$auth+'127.0.0.1:3306/glarium'; $secret=[guid]::NewGuid().ToString('N')+[guid]::NewGuid().ToString('N'); @('DATABASE_URL=""'+$url+'""','JWT_SECRET='+$secret,'JWT_EXPIRES_IN=7d') | Set-Content -Encoding ascii 'backend/.env'"
+  if errorlevel 1 goto fail
+)
+
+echo [4/6] Backend installeren en database vullen...
 pushd backend
 call npm install
 if errorlevel 1 goto backendfail
@@ -41,32 +110,51 @@ if errorlevel 1 goto backendfail
 call npm run build
 if errorlevel 1 goto backendfail
 popd
-echo [4/5] Frontend bouwen...
+
+echo [5/6] Gamebestanden bouwen...
 pushd frontend
 call npm install
 if errorlevel 1 goto frontendfail
 call npm run build
 if errorlevel 1 goto frontendfail
 popd
-echo [5/5] Game in htdocs plaatsen...
 xcopy "frontend\dist\*" "%~dp0" /E /I /Y >nul
-if errorlevel 1 (echo Kopieren mislukt. & pause & exit /b 1)
-echo.
-echo INSTALLATIE GEREED!
-echo De game-server wordt gestart...
-start "BLACK TIDE API" /D "%~dp0backend" cmd /k "npm start"
-timeout /t 3 /nobreak >nul
-echo Open http://localhost/
+if errorlevel 1 goto fail
+
+echo [6/6] Game starten...
+:: Voorkom dat de API dubbel wordt gestart.
+netstat -ano | findstr ":3001" | findstr "LISTENING" >nul
+if errorlevel 1 start "BLACK TIDE API" /min cmd /c "cd /d ""%~dp0backend"" && npm start"
+timeout /t 4 /nobreak >nul
 start "" "http://localhost/"
+
+echo.
+echo ==========================================
+echo       BLACK TIDE IS GEINSTALLEERD!
+echo ==========================================
+echo De game is geopend in je browser.
+echo Starten kan voortaan door INSTALLER.bat opnieuw te openen.
+echo.
 pause
 exit /b 0
+
+:dbfail
+echo Database kon niet worden aangemaakt met de standaard XAMPP-login.
+echo Gebruik je een aangepast MySQL-wachtwoord? Pas backend\.env handmatig aan.
+goto fail
+
 :backendfail
 popd
-echo Backend/database installatie mislukt. Lees de foutmelding hierboven.
-pause
-exit /b 1
+echo Backend-installatie mislukt. De foutmelding staat hierboven.
+goto fail
+
 :frontendfail
 popd
-echo Frontend installatie mislukt. Lees de foutmelding hierboven.
+echo Frontend-build mislukt. De foutmelding staat hierboven.
+goto fail
+
+:fail
+echo.
+echo INSTALLATIE NIET VOLTOOID.
 pause
 exit /b 1
