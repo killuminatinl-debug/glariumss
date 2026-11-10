@@ -15,9 +15,9 @@ if not exist "frontend\node_modules" (
 )
 
 echo Start eerst MySQL in XAMPP Control Panel.
-start "BLACK TIDE Backend" cmd /k "cd /d "%~dp0backend" && npm run dev"
+start "BLACK TIDE Backend" /D "%~dp0backend" cmd /k "npm run dev"
 timeout /t 3 /nobreak >nul
-start "BLACK TIDE Frontend" cmd /k "cd /d "%~dp0frontend" && npm start"
+start "BLACK TIDE Frontend" /D "%~dp0frontend" cmd /k "npm start"
 timeout /t 5 /nobreak >nul
 start "" "http://localhost:3000"
 echo.
