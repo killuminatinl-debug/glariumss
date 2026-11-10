@@ -39,7 +39,7 @@ const Building: React.FC<BuildingProps> = ({ groundList, buildingList, handleBui
         const building = buildingList.find((b) => b.position === index);
 
         if (!building) {
-            return <img src={Ground} className="w-full h-full" />;
+            return <img src={Ground} className="w-full h-full" alt="" draggable={false} />;
         }
 
         const isConstruction = building.constructedAt !== null && new Date(building.constructedAt).getTime() > currentTime;
@@ -47,8 +47,8 @@ const Building: React.FC<BuildingProps> = ({ groundList, buildingList, handleBui
         if (isConstruction) {
             return (
                 <div className="relative w-full h-full">
-                    <img src={Construct} className="w-full h-full" />
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-2 py-1 rounded-md">
+                    <img src={Construct} className="w-full h-full" alt="" draggable={false} />
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs px-2 py-1 rounded-md">
                         {building.constructedAt && getRemainingTime(building.constructedAt)}
                     </div>
                 </div>
@@ -77,11 +77,11 @@ const Building: React.FC<BuildingProps> = ({ groundList, buildingList, handleBui
     };
 
     return (
-        <div className="relative w-full h-full">
+        <div className="pirate-building-layer relative w-full h-full">
             {groundList.map((building, index) => (
                 <div
                     key={index}
-                    className="absolute cursor-pointer"
+                    className="pirate-building-slot absolute cursor-pointer"
                     style={{
                         ...getBuildingStyle(index),
                         top: building.top,
