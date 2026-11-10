@@ -99,10 +99,72 @@ echo [3/6] Database automatisch aanmaken...
 if errorlevel 1 goto dbfail
 set "DBUSER=root"
 set "DBPASS="
-if not exist "backend\.env" (
-  powershell -NoProfile -ExecutionPolicy Bypass -Command "$u=$env:DBUSER; $p=[uri]::EscapeDataString($env:DBPASS); $auth=if($p){$u+':'+$p+'@'}else{$u+'@'}; $url='mysql://'+$auth+'127.0.0.1:3306/glarium'; $secret=[guid]::NewGuid().ToString('N')+[guid]::NewGuid().ToString('N'); @('DATABASE_URL="'+$url+'"','JWT_SECRET='+$secret,'JWT_EXPIRES_IN=7d') | Set-Content -Encoding ascii 'backend/.env'"
-  if errorlevel 1 goto fail
-)
+:: Schrijf .env met gegarandeerde echte regeleinden. Herstel ook een eerder fout aangemaakt bestand.
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$path='backend/.env'; $secret=''; if(Test-Path $path){$m=Select-String -Path $path -Pattern '^JWT_SECRET=(.+)
+
+echo [4/6] Backend installeren en database vullen...
+pushd backend
+call npm install
+if errorlevel 1 goto backendfail
+call npx prisma generate --schema=src/dataAccess/prisma/schema.prisma
+if errorlevel 1 goto backendfail
+call npx prisma migrate deploy --schema=src/dataAccess/prisma/schema.prisma
+if errorlevel 1 goto backendfail
+call npm run seed
+if errorlevel 1 goto backendfail
+call npm run build
+if errorlevel 1 goto backendfail
+popd
+
+echo [5/6] Gamebestanden bouwen...
+pushd frontend
+call npm install
+if errorlevel 1 goto frontendfail
+call npm run build
+if errorlevel 1 goto frontendfail
+popd
+xcopy "frontend\dist\*" "%~dp0" /E /I /Y >nul
+if errorlevel 1 goto fail
+
+echo [6/6] Game starten...
+:: Voorkom dat de API dubbel wordt gestart.
+netstat -ano | findstr ":3001" | findstr "LISTENING" >nul
+if errorlevel 1 start "BLACK TIDE API" /min cmd /c "cd /d ""%~dp0backend"" && npm start"
+timeout /t 4 /nobreak >nul
+start "" "http://localhost/"
+
+echo.
+echo ==========================================
+echo       BLACK TIDE IS GEINSTALLEERD!
+echo ==========================================
+echo De game is geopend in je browser.
+echo Starten kan voortaan door INSTALLER.bat opnieuw te openen.
+echo.
+pause
+exit /b 0
+
+:dbfail
+echo Database kon niet worden aangemaakt met de standaard XAMPP-login.
+echo Gebruik je een aangepast MySQL-wachtwoord? Pas backend\.env handmatig aan.
+goto fail
+
+:backendfail
+popd
+echo Backend-installatie mislukt. De foutmelding staat hierboven.
+goto fail
+
+:frontendfail
+popd
+echo Frontend-build mislukt. De foutmelding staat hierboven.
+goto fail
+
+:fail
+echo.
+echo INSTALLATIE NIET VOLTOOID.
+pause
+exit /b 1
+ | Select-Object -First 1; if($m){$secret=$m.Matches[0].Groups[1].Value}}; if(!$secret){$secret=[guid]::NewGuid().ToString('N')+[guid]::NewGuid().ToString('N')}; $url='mysql://root@127.0.0.1:3306/glarium'; $content=\"DATABASE_URL=$url`r`nJWT_SECRET=$secret`r`nJWT_EXPIRES_IN=7d`r`n\"; [IO.File]::WriteAllText((Join-Path (Get-Location) $path),$content,[Text.Encoding]::ASCII)"
+if errorlevel 1 goto fail
 
 echo [4/6] Backend installeren en database vullen...
 pushd backend
