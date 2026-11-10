@@ -83,8 +83,8 @@ try {
 
     Write-Host ""; Write-Host "[5/6] Backend installeren, migreren en bouwen" -ForegroundColor Cyan
     Invoke-Checked $NpmPath @("install") "$Root\backend"
-    Invoke-Checked $NpmPath @("exec", "prisma", "generate", "--", "--schema=src/dataAccess/prisma/schema.prisma") "$Root\backend"
-    Invoke-Checked $NpmPath @("exec", "prisma", "migrate", "deploy", "--", "--schema=src/dataAccess/prisma/schema.prisma") "$Root\backend"
+    Invoke-Checked $NpmPath @("exec", "--", "prisma", "generate", "--schema=src/dataAccess/prisma/schema.prisma") "$Root\backend"
+    Invoke-Checked $NpmPath @("exec", "--", "prisma", "migrate", "deploy", "--schema=src/dataAccess/prisma/schema.prisma") "$Root\backend"
     Invoke-Checked $NpmPath @("run", "seed") "$Root\backend"
     Invoke-Checked $NpmPath @("run", "build") "$Root\backend"
     $entry = Join-Path $Root "backend\dist\backend\src\index.js"
