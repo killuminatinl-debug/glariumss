@@ -4,6 +4,13 @@ title BLACK TIDE - Automatische installatie
 color 0B
 cd /d "%~dp0"
 
+:: Vraag automatisch beheerdersrechten voor Node.js en XAMPP.
+net session >nul 2>nul
+if not "%errorlevel%"=="0" (
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
+  exit /b
+)
+
 echo.
 echo  ==========================================
 echo          BLACK TIDE - AUTOMATISCHE SETUP
@@ -93,7 +100,7 @@ if errorlevel 1 goto dbfail
 set "DBUSER=root"
 set "DBPASS="
 if not exist "backend\.env" (
-  powershell -NoProfile -ExecutionPolicy Bypass -Command "$u=$env:DBUSER; $p=[uri]::EscapeDataString($env:DBPASS); $auth=if($p){$u+':'+$p+'@'}else{$u+'@'}; $url='mysql://'+$auth+'127.0.0.1:3306/glarium'; $secret=[guid]::NewGuid().ToString('N')+[guid]::NewGuid().ToString('N'); @('DATABASE_URL=""'+$url+'""','JWT_SECRET='+$secret,'JWT_EXPIRES_IN=7d') | Set-Content -Encoding ascii 'backend/.env'"
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "$u=$env:DBUSER; $p=[uri]::EscapeDataString($env:DBPASS); $auth=if($p){$u+':'+$p+'@'}else{$u+'@'}; $url='mysql://'+$auth+'127.0.0.1:3306/glarium'; $secret=[guid]::NewGuid().ToString('N')+[guid]::NewGuid().ToString('N'); @('DATABASE_URL="'+$url+'"','JWT_SECRET='+$secret,'JWT_EXPIRES_IN=7d') | Set-Content -Encoding ascii 'backend/.env'"
   if errorlevel 1 goto fail
 )
 
